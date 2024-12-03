@@ -1,7 +1,15 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
 
-const nextConfig: NextConfig = {
-  /* config options here */
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: "/app/api/:path*",
+        destination: "/app/api/:path*",
+      },
+    ];
+  },
+  images: {
+    domains: ["www.fithousetrainingstudio.com"],
+  },
 };
-
-export default nextConfig;
