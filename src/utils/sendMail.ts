@@ -60,7 +60,7 @@ export async function sendMail(
     const transporter: nodemailer.Transporter = nodemailer.createTransport({
       host: host,
       port: port,
-      secure: false, // false ise TLS kullanılacak
+      secure: true, // false ise TLS kullanılacak
       auth: {
         user: username,
         pass: password,
