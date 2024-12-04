@@ -21,9 +21,10 @@ import {
   TableRow,
 } from "@/components/table";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
-interface User {
+export interface User {
   id: number;
   name: string;
   email: string;
@@ -44,11 +45,43 @@ interface NewUserModal {
   remainingLessons: number | "";
 }
 
+interface CustomState {
+  open: boolean;
+  name: string;
+  email: string;
+  [key: `message${number}`]: string;
+}
+
+interface AllUsersState {
+  open: boolean;
+
+  [key: `message${number}`]: string;
+}
+
 export default function AdminPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [sure, setSure] = useState<SureType>({ open: false, userId: null });
   const [customUsers, setCustomUsers] = useState<User[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
+  const [custom, setCustom] = useState<CustomState>({
+    open: false,
+    name: "",
+    email: "",
+    message1: "",
+    message2: "",
+    message3: "",
+    message4: "",
+    message5: "",
+  });
+  const [allUsers, setAllUsers] = useState<AllUsersState>({
+    open: false,
+    message1: "",
+    message2: "",
+    message3: "",
+    message4: "",
+    message5: "",
+  });
   const [newUserModal, setNewUserModal] = useState<NewUserModal>({
     type: "new",
     id: null,
@@ -151,8 +184,113 @@ export default function AdminPage() {
     }
   }, [inputValue, users]);
 
+  const handleSendAllMail = async () => {
+    const { message1, message2, message3, message4, message5 } = allUsers;
+
+    const messages = [message1, message2, message3, message4, message5];
+
+    if (users.length === 0) {
+      alert("Kullanıcı bulunamadı.");
+      return;
+    } else if (!messages.some((msg) => msg.trim() !== "")) {
+      alert("En az bir mesaj alanı doldurulmalıdır.");
+      return;
+    }
+
+    const config = {
+      htmlFile: {
+        htmlName: "/template/feedback",
+        title: "Fit House Training Studio",
+      },
+      mailRequest: {
+        message1,
+        message2,
+        message3,
+        message4,
+        message5,
+      },
+    };
+
+    await fetch("/api/users/custom/all", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ config }),
+    })
+      .then((result) => {
+        if (result.ok) {
+          setAllUsers({
+            open: false,
+            message1: "",
+            message2: "",
+            message3: "",
+            message4: "",
+            message5: "",
+          });
+
+          alert("Tüm kullanıcılara mail gönderildi.");
+        }
+      })
+      .catch((err) => {
+        alert(err);
+      });
+  };
+
+  const handleSendCustomMail = async () => {
+    const { name, email, message1, message2, message3, message4, message5 } =
+      custom;
+
+    const messages = [message1, message2, message3, message4, message5];
+
+    if (!name || !email) {
+      alert("Ad Soyad ve Mail alanları doldurulmalıdır.");
+      return;
+    } else if (!messages.some((msg) => msg.trim() !== "")) {
+      alert("En az bir mesaj alanı doldurulmalıdır.");
+      return;
+    }
+
+    const config = {
+      htmlFile: {
+        htmlName: "/template/feedback",
+        title: "Fit House Training Studio",
+      },
+      mailRequest: {
+        name: name,
+        message1,
+        message2,
+        message3,
+        message4,
+        message5,
+      },
+    };
+
+    await fetch("/api/users/custom/mail", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, config }),
+    })
+      .then((result) => {
+        if (result.ok) {
+          setCustom({
+            open: false,
+            name: "",
+            email: "",
+            message1: "",
+            message2: "",
+            message3: "",
+            message4: "",
+            message5: "",
+          });
+
+          alert("Mail gönderildi.");
+        }
+      })
+      .catch((err) => {
+        alert(err);
+      });
+  };
+
   const handleNewUserSubmit = async () => {
-    console.log(newUserModal, "newUserModal");
     const { name, email, remainingLessons } = newUserModal;
 
     if (!name || !email || !remainingLessons) {
@@ -246,19 +384,35 @@ export default function AdminPage() {
     setPaginatedUsers(paginated);
   }, [currentPage]);
 
+  function handleLogout() {
+    fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((res) => {
+        if (res.ok) {
+          setTimeout(() => {
+            router.push("/login");
+          }, 500);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
   return (
-    <div className="flex min-h-[100vh] w-full !items-center flex-col gap-12">
-      <div>
+    <div className="flex min-h-[100vh] w-full !items-center flex-col gap-12 md:my-1 my-8 px-2">
+      <div className="relative md:w-[320px] md:h-[180px] w-[220px] h-[120px]">
         <Image
           src="https://www.fithousetrainingstudio.com/images/logo/6214858539465-672-fithouse-footer-logo.png"
           alt="fithouse"
-          width={320}
-          height={180}
+          fill
         />
       </div>
       <div className="max-w-[800px] w-full flex flex-col gap-6">
-        <div className="flex gap-4 justify-between">
-          <div className="w-1/2">
+        <div className="flex gap-4 flex-col-reverse md:flex-row justify-between">
+          <div className="w-full md:w-1/2">
             <Input
               type="text"
               placeholder="Ara..."
@@ -266,7 +420,7 @@ export default function AdminPage() {
               onChange={handleInputValue}
             />
           </div>
-          <div className="w-1/2 flex justify-end">
+          <div className="w-full md:w-1/2 flex justify-end gap-2">
             <Button
               variant="outlineGreen"
               onClick={() =>
@@ -275,10 +429,24 @@ export default function AdminPage() {
             >
               Ekle
             </Button>
+            <Button
+              variant="outlineGreen"
+              onClick={() => setCustom({ ...custom, open: true })}
+            >
+              Özel Mail
+            </Button>
+            <Button
+              variant="outlineGreen"
+              onClick={() => setAllUsers({ ...allUsers, open: true })}
+            >
+              Toplu Mail
+            </Button>
           </div>
         </div>
         <Table>
-          <TableCaption>A list of FitHouse.</TableCaption>
+          <TableCaption className="invisible md:visible">
+            A list of FitHouse.
+          </TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead>Adı Soyadı</TableHead>
@@ -330,7 +498,9 @@ export default function AdminPage() {
               <PaginationItem>
                 <PaginationPrevious
                   className="cursor-pointer"
-                  onClick={() => setCurrentPage(currentPage - 1)}
+                  onClick={() =>
+                    currentPage !== 1 && setCurrentPage(currentPage - 1)
+                  }
                 />
               </PaginationItem>
               <PaginationItem>
@@ -439,7 +609,7 @@ export default function AdminPage() {
 
               <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
                 <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0 ">
-                  <div className="relative transform overflow-hidden rounded-lg bg-black text-left shadow-md shadow-slate-400 transition-all sm:my-8 sm:w-full sm:max-w-lg ">
+                  <div className="relative transform overflow-hidden rounded-lg bg-black text-left shadow-md shadow-slate-400 transition-all w-full mb-40 sm:my-8 sm:w-full sm:max-w-lg ">
                     <div className="bg-black px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                       <div className="sm:flex sm:items-start">
                         <div className="mt-3 text-center sm:mx-4 w-full sm:mt-0 sm:text-left">
@@ -499,7 +669,7 @@ export default function AdminPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="px-4 py-3 sm:flex gap-4 sm:flex-row-reverse sm:px-6">
+                    <div className="px-4 py-3 flex gap-4 sm:flex-row-reverse sm:px-6">
                       <Button variant={"green"} onClick={handleNewUserSubmit}>
                         Kaydet
                       </Button>
@@ -524,6 +694,194 @@ export default function AdminPage() {
             </div>
           </>
         )}
+
+        {custom.open && (
+          <>
+            <div
+              className="relative z-10"
+              aria-labelledby="modal-title"
+              role="dialog"
+              aria-modal="true"
+            >
+              <div
+                className="fixed inset-0 bg-black/30 backdrop-blur-[4px] transition-opacity"
+                aria-hidden="true"
+              ></div>
+
+              <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+                <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0 ">
+                  <div className="relative transform overflow-hidden rounded-lg bg-black text-left shadow-md shadow-slate-400 transition-all w-full my-8 sm:my-8 sm:w-full sm:max-w-lg ">
+                    <div className="bg-black px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                      <div className="sm:flex sm:items-start">
+                        <div className="mt-3 text-center sm:mx-4 w-full sm:mt-0 sm:text-left">
+                          <h3
+                            className="text-base font-semibold text-white"
+                            id="modal-title"
+                          >
+                            Kişiye Özel Mail Gönder
+                          </h3>
+                          <div className="mt-4 w-full flex flex-col gap-3">
+                            <div>
+                              <label className="text-[12px]">Ad Soyad</label>
+                              <Input
+                                className="mt-1"
+                                type="text"
+                                placeholder="Ad Soyad"
+                                value={custom.name}
+                                onChange={(e) =>
+                                  setCustom({
+                                    ...custom,
+                                    name: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[12px]">Mail</label>
+                              <Input
+                                className="mt-1"
+                                type="email"
+                                placeholder="Email"
+                                value={custom.email}
+                                onChange={(e) =>
+                                  setCustom({
+                                    ...custom,
+                                    email: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                            {Array.from({ length: 5 }, (_, index) => (
+                              <div key={index + 1}>
+                                <label className="text-[12px]">
+                                  {index + 1}. Satır
+                                </label>
+                                <Input
+                                  className="mt-1"
+                                  type="text"
+                                  placeholder={`${index + 1} Satır`}
+                                  value={custom[`message${index + 1}`] || ""}
+                                  onChange={(e) =>
+                                    setCustom({
+                                      ...custom,
+                                      [`message${index + 1}`]: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-4 py-3 flex gap-4 sm:flex-row-reverse sm:px-6">
+                      <Button variant={"green"} onClick={handleSendCustomMail}>
+                        Gönder
+                      </Button>
+                      <Button
+                        variant={"outline"}
+                        onClick={() =>
+                          setCustom({
+                            open: false,
+                            name: "",
+                            email: "",
+                            message1: "",
+                            message2: "",
+                            message3: "",
+                            message4: "",
+                            message5: "",
+                          })
+                        }
+                      >
+                        Kapat
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {allUsers.open && (
+          <>
+            <div
+              className="relative z-10"
+              aria-labelledby="modal-title"
+              role="dialog"
+              aria-modal="true"
+            >
+              <div
+                className="fixed inset-0 bg-black/30 backdrop-blur-[4px] transition-opacity"
+                aria-hidden="true"
+              ></div>
+
+              <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+                <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0 ">
+                  <div className="relative transform overflow-hidden rounded-lg bg-black text-left shadow-md shadow-slate-400 transition-all w-full my-8 sm:my-8 sm:w-full sm:max-w-lg ">
+                    <div className="bg-black px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                      <div className="sm:flex sm:items-start">
+                        <div className="mt-3 text-center sm:mx-4 w-full sm:mt-0 sm:text-left">
+                          <h3
+                            className="text-base font-semibold text-white"
+                            id="modal-title"
+                          >
+                            Tüm Üyelere Mail Gönder
+                          </h3>
+                          <div className="mt-4 w-full flex flex-col gap-3">
+                            {Array.from({ length: 5 }, (_, index) => (
+                              <div key={index + 1}>
+                                <label className="text-[12px]">
+                                  {index + 1}. Satır
+                                </label>
+                                <Input
+                                  className="mt-1"
+                                  type="text"
+                                  placeholder={`${index + 1} Satır`}
+                                  value={allUsers[`message${index + 1}`] || ""}
+                                  onChange={(e) =>
+                                    setAllUsers({
+                                      ...allUsers,
+                                      [`message${index + 1}`]: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-4 py-3 flex gap-4 sm:flex-row-reverse sm:px-6">
+                      <Button variant={"green"} onClick={handleSendAllMail}>
+                        Gönder
+                      </Button>
+                      <Button
+                        variant={"outline"}
+                        onClick={() =>
+                          setAllUsers({
+                            open: false,
+                            message1: "",
+                            message2: "",
+                            message3: "",
+                            message4: "",
+                            message5: "",
+                          })
+                        }
+                      >
+                        Kapat
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        <Button variant={"outline"} onClick={handleLogout}>
+          Çıkış Yap
+        </Button>
       </div>
     </div>
   );

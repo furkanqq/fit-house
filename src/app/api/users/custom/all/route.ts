@@ -3,19 +3,13 @@ import connectDB from "@/db/index.mjs";
 
 import { sendMail } from "@/utils/sendMail";
 import { UserMailConfigTypes } from "@/types";
+import { User } from "@/app/page";
 
 export async function POST(req: NextRequest) {
-  const { userId, config } = await req.json();
+  const { config } = await req.json();
   const db = await connectDB();
 
-  // Kullanıcıyı güncelle
-  await db.run(
-    "UPDATE users SET remainingLessons = remainingLessons - 1 WHERE id = ?",
-    [userId]
-  );
-
-  // Kalan ders sayısını kontrol et
-  const user = await db.get("SELECT * FROM users WHERE id = ?", [userId]);
+  const users = await db.all("SELECT * FROM users");
 
   const userMailConfig: UserMailConfigTypes = {
     username: process.env.SMTP_MAIL as string,
@@ -24,18 +18,14 @@ export async function POST(req: NextRequest) {
     host: process.env.SMTP_HOST as string,
   };
 
-  if (user.remainingLessons === 2) {
-    // await sendEmail(user.email, "Ders Uyarısı", "Kalan dersleriniz 2!");
+  users.map(async (user: User) => {
     await sendMail(
       user?.email,
       config?.htmlFile,
       config?.mailRequest,
       userMailConfig
     );
-  }
+  });
 
-  return NextResponse.json(
-    { message: "Ders sayısı güncellendi" },
-    { status: 200 }
-  );
+  return NextResponse.json({ message: "Gönderildi" }, { status: 200 });
 }

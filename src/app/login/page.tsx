@@ -28,7 +28,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex h-[100vh] flex-col justify-center items-center px-6 py-12 lg:px-8">
+    <div className="flex h-[100vh] flex-col justify-center items-center md:px-6 py-12 lg:px-8">
       <div className="flex justify-center flex-col items-center sm:mx-auto sm:w-full sm:max-w-sm ">
         <Image
           src="https://www.fithousetrainingstudio.com/images/logo/6214858539465-672-fithouse-footer-logo.png"
@@ -41,7 +41,7 @@ export default function LoginPage() {
         </h2>
       </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+      <div className="mt-10 sm:mx-auto w-[80vw] sm:w-full sm:max-w-sm">
         <form
           className="space-y-6"
           action="#"

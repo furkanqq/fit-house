@@ -49,7 +49,7 @@ export async function PUT(req: NextRequest) {
       { message: "Kullanıcı bilgileri başarıyla güncellendi." },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Kullanıcı güncellenirken hata oluştu:", error);
     return NextResponse.json({ error: "Bir hata oluştu." }, { status: 500 });
   }

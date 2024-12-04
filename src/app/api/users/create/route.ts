@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       { message: "Kullanıcı başarıyla oluşturuldu.", id: result.lastID },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Kullanıcı oluşturulurken hata oluştu:", error);
     return NextResponse.json({ error: "Bir hata oluştu." }, { status: 500 });
   }
