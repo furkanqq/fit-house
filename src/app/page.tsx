@@ -22,13 +22,8 @@ import {
 } from "@/components/table";
 import {
   Check,
-  Delete,
-  DeleteIcon,
-  DoorClosed,
   Edit,
   LogOut,
-  PersonStanding,
-  Plus,
   Save,
   Send,
   SidebarClose,
