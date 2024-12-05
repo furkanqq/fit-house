@@ -20,6 +20,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/table";
+import {
+  Check,
+  Delete,
+  DeleteIcon,
+  DoorClosed,
+  Edit,
+  LogOut,
+  PersonStanding,
+  Plus,
+  Save,
+  Send,
+  SidebarClose,
+  Trash,
+  Trash2,
+  UserPlus,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
@@ -62,6 +80,10 @@ export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [sure, setSure] = useState<SureType>({ open: false, userId: null });
+  const [deleteSure, setDeleteSure] = useState<SureType>({
+    open: false,
+    userId: null,
+  });
   const [customUsers, setCustomUsers] = useState<User[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
   const [custom, setCustom] = useState<CustomState>({
@@ -112,6 +134,28 @@ export default function AdminPage() {
 
   const handleInputValue = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    await fetch("/api/users/update/user/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    })
+      .then((result) => {
+        if (result.ok) {
+          setUsers((prevUsers) =>
+            prevUsers.filter((user) => user.id !== userId)
+          );
+          setCustomUsers((prevUsers) =>
+            prevUsers.filter((user) => user.id !== userId)
+          );
+          setDeleteSure({ open: false, userId: null });
+        }
+      })
+      .catch((err) => {
+        alert(err);
+      });
   };
 
   const handleLessonDecrement = async (userId: number) => {
@@ -427,71 +471,91 @@ export default function AdminPage() {
                 setNewUserModal({ ...newUserModal, open: true, type: "new" })
               }
             >
+              <UserPlus />
               Ekle
             </Button>
             <Button
               variant="outlineGreen"
               onClick={() => setCustom({ ...custom, open: true })}
             >
+              <UserRound />
               Özel Mail
             </Button>
             <Button
               variant="outlineGreen"
               onClick={() => setAllUsers({ ...allUsers, open: true })}
             >
+              <UsersRound />
               Toplu Mail
             </Button>
           </div>
         </div>
-        <Table>
-          <TableCaption className="invisible md:visible">
-            A list of FitHouse.
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Adı Soyadı</TableHead>
-              <TableHead>Mail</TableHead>
-              <TableHead>Kalan</TableHead>
-              <TableHead className="text-right"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.remainingLessons}</TableCell>
-                <TableCell className="text-right flex gap-2 justify-end">
-                  <Button
-                    variant={"outline"}
-                    onClick={() =>
-                      setNewUserModal({
-                        type: "update",
-                        id: user.id,
-                        open: true,
-                        name: user.name,
-                        email: user.email,
-                        remainingLessons: user.remainingLessons,
-                      })
-                    }
-                  >
-                    Güncelle
-                  </Button>
-                  <Button
-                    variant={"outline"}
-                    onClick={() =>
-                      user.remainingLessons === 3
-                        ? setSure({ open: true, userId: user.id })
-                        : handleLessonDecrement(user.id)
-                    }
-                  >
-                    Ders Yaptı
-                  </Button>
-                </TableCell>
+        {paginatedUsers.length > 0 ? (
+          <Table className="relative">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Adı Soyadı</TableHead>
+                <TableHead>Mail</TableHead>
+                <TableHead>Kalan</TableHead>
+                <TableHead className="text-right"></TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {paginatedUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.remainingLessons}</TableCell>
+                  <TableCell className="text-right flex gap-2 justify-end">
+                    <Button
+                      variant={"outline"}
+                      onClick={() =>
+                        setNewUserModal({
+                          type: "update",
+                          id: user.id,
+                          open: true,
+                          name: user.name,
+                          email: user.email,
+                          remainingLessons: user.remainingLessons,
+                        })
+                      }
+                    >
+                      Güncelle
+                      <Edit />
+                    </Button>
+                    <Button
+                      variant={"outline"}
+                      onClick={() =>
+                        user.remainingLessons === 3
+                          ? setSure({ open: true, userId: user.id })
+                          : handleLessonDecrement(user.id)
+                      }
+                    >
+                      Ders Yaptı
+                      <Check />
+                    </Button>
+                    <Button
+                      variant={"outline"}
+                      onClick={() =>
+                        setDeleteSure({ open: true, userId: user.id })
+                      }
+                      // onClick={() => handleDeleteUser(user.id)}
+                    >
+                      <Trash />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>{" "}
+            <TableCaption className="invisible md:visible">
+              A list of FitHouse.
+            </TableCaption>
+          </Table>
+        ) : (
+          <div className="border border-solid border-gray-500/20 w-full h-20 flex justify-center items-center">
+            <span>Henüz Bir Müşteri Bulunmamaktadır.</span>
+          </div>
+        )}
         <div className="w-full">
           <Pagination>
             <PaginationContent>
@@ -512,7 +576,10 @@ export default function AdminPage() {
               <PaginationItem>
                 <PaginationNext
                   className="cursor-pointer"
-                  onClick={() => setCurrentPage(currentPage + 1)}
+                  onClick={() =>
+                    Math.ceil(users.length / usersPerPage) > currentPage &&
+                    setCurrentPage(currentPage + 1)
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
@@ -579,11 +646,89 @@ export default function AdminPage() {
                         type="button"
                       >
                         Gönder
+                        <Send />
                       </Button>
                       <Button
                         variant={"outline"}
                         type="button"
                         onClick={() => setSure({ open: false, userId: null })}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+        {deleteSure.open && (
+          <>
+            <div
+              className="relative z-10"
+              aria-labelledby="modal-title"
+              role="dialog"
+              aria-modal="true"
+            >
+              <div
+                className="fixed inset-0 bg-black/30 backdrop-blur-[4px] transition-opacity"
+                aria-hidden="true"
+              ></div>
+
+              <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+                <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0 ">
+                  <div className="relative transform overflow-hidden rounded-lg bg-black text-left shadow-md shadow-slate-400 transition-all sm:my-8 sm:w-full sm:max-w-lg ">
+                    <div className="bg-black px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                      <div className="sm:flex sm:items-start">
+                        <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:size-10">
+                          <svg
+                            className="size-6 text-red-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            data-slot="icon"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                          <h3
+                            className="text-base font-semibold text-white"
+                            id="modal-title"
+                          >
+                            Uyarı: Kullanıcı Silme
+                          </h3>
+                          <div className="mt-2">
+                            <p className="text-sm text-gray-500">
+                              Kullanıcıyı silmek istediğinizden emin misiniz?
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-4 py-3 sm:flex gap-4 sm:flex-row-reverse sm:px-6">
+                      <Button
+                        variant={"green"}
+                        onClick={() => {
+                          handleDeleteUser(deleteSure.userId as number);
+                        }}
+                        type="button"
+                      >
+                        Sil
+                        <Trash2 />
+                      </Button>
+                      <Button
+                        variant={"outline"}
+                        type="button"
+                        onClick={() =>
+                          setDeleteSure({ open: false, userId: null })
+                        }
                       >
                         Cancel
                       </Button>
@@ -672,6 +817,7 @@ export default function AdminPage() {
                     <div className="px-4 py-3 flex gap-4 sm:flex-row-reverse sm:px-6">
                       <Button variant={"green"} onClick={handleNewUserSubmit}>
                         Kaydet
+                        <Save />
                       </Button>
                       <Button
                         variant={"outline"}
@@ -685,6 +831,7 @@ export default function AdminPage() {
                           })
                         }
                       >
+                        <SidebarClose />
                         Kapat
                       </Button>
                     </div>
@@ -777,6 +924,7 @@ export default function AdminPage() {
                     <div className="px-4 py-3 flex gap-4 sm:flex-row-reverse sm:px-6">
                       <Button variant={"green"} onClick={handleSendCustomMail}>
                         Gönder
+                        <Send />
                       </Button>
                       <Button
                         variant={"outline"}
@@ -793,6 +941,7 @@ export default function AdminPage() {
                           })
                         }
                       >
+                        <SidebarClose />
                         Kapat
                       </Button>
                     </div>
@@ -855,6 +1004,7 @@ export default function AdminPage() {
                     <div className="px-4 py-3 flex gap-4 sm:flex-row-reverse sm:px-6">
                       <Button variant={"green"} onClick={handleSendAllMail}>
                         Gönder
+                        <Send />
                       </Button>
                       <Button
                         variant={"outline"}
@@ -869,6 +1019,7 @@ export default function AdminPage() {
                           })
                         }
                       >
+                        <SidebarClose />
                         Kapat
                       </Button>
                     </div>
@@ -881,6 +1032,7 @@ export default function AdminPage() {
 
         <Button variant={"outline"} onClick={handleLogout}>
           Çıkış Yap
+          <LogOut />
         </Button>
       </div>
     </div>
