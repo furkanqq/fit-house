@@ -36,11 +36,13 @@ export async function sendMail(
 
     // Path of the email content to be sent
 
-    const rootPath = fs.existsSync(path.resolve("src"))
-      ? path.resolve("src")
-      : path.resolve(".");
+    // const rootPath = fs.existsSync(path.resolve("src"))
+    //   ? path.resolve("src")
+    //   : path.resolve(".");
 
-    const fullPath: string = rootPath.concat(htmlFile.htmlName + ".html");
+    // const fullPath: string = rootPath.concat(htmlFile.htmlName + ".html");
+    const fullPath: string = path.join(process.cwd(), "public", "template", "feedback.html");
+
 
     // Read HTML file asynchronously
     const html = await readHTMLFileAsync(fullPath);
