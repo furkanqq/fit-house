@@ -28,10 +28,8 @@ import dotenv from "dotenv";
 const { Pool } = pkg;
 dotenv.config();
 
-console.log(process.env.DATABASE_URL, "process.env.DATABASE_URL");
-
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // .env dosyasından okur
+  connectionString: process.env.DATABASE_URL,
 });
 
 pool

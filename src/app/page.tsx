@@ -112,6 +112,7 @@ export default function AdminPage() {
     const fetchUsers = async () => {
       const res = await fetch("/api/users");
       const data = await res.json();
+
       setUsers(data);
       setCustomUsers(data);
     };
@@ -139,6 +140,13 @@ export default function AdminPage() {
     })
       .then((result) => {
         if (result.ok) {
+          const fetchUsers = async () => {
+            const res = await fetch("/api/users");
+            const data = await res.json();
+            setUsers(data);
+            setCustomUsers(data);
+          };
+          fetchUsers();
           setUsers((prevUsers) =>
             prevUsers.filter((user) => user.id !== userId)
           );
@@ -406,8 +414,6 @@ export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [paginatedUsers, setPaginatedUsers] = useState<User[]>([]);
 
-  console.log(customUsers, "customUsers");
-
   useEffect(() => {
     setCurrentPage(1);
     if (!customUsers || customUsers.length === 0) return;
@@ -443,7 +449,7 @@ export default function AdminPage() {
         console.log(err);
       });
   }
-
+  
   return (
     <div className="flex min-h-[100vh] w-full !items-center flex-col gap-12 md:my-1 my-8 px-2">
       <div className="relative md:w-[320px] md:h-[180px] w-[220px] h-[120px]">

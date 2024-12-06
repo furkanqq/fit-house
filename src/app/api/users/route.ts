@@ -3,6 +3,8 @@ import pool from "@/db/index.mjs";
 
 export async function GET() {
   const client = await pool.connect(); // Bağlantıyı al
+
+  // client.query(`DROP TABLE IF EXISTS users`);
   try {
     // PostgreSQL sorgusu
     const result = await client.query("SELECT * FROM users");
