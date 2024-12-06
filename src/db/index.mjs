@@ -31,4 +31,9 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL, // .env dosyasından okur
 });
 
+pool
+  .connect()
+  .then(() => console.log("Bağlantı başarılı"))
+  .catch((err) => console.error("Bağlantı hatası:", err));
+
 export default pool;
