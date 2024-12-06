@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/db/index.mjs";
+import pool from "@/db/index.mjs"; // Veritabanı bağlantısı
 
 export async function PUT(req: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function PUT(req: NextRequest) {
       remainingLessons?: number;
     } = await req.json();
 
-    // Girdi doğrulama
+    // ID'nin sağlandığını kontrol et
     if (!id) {
       return NextResponse.json(
         { error: "Kullanıcı ID'si belirtilmeli." },
@@ -23,34 +23,55 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const db = await connectDB();
+    // Veritabanı bağlantısını al
+    const client = await pool.connect();
 
-    // Kullanıcıyı kontrol et
-    const user = await db.get("SELECT * FROM users WHERE id = ?", [id]);
-    if (!user) {
-      return NextResponse.json(
-        { error: "Kullanıcı bulunamadı." },
-        { status: 404 }
+    try {
+      // Kullanıcıyı kontrol et
+      const user = await client.query("SELECT * FROM users WHERE id = $1", [
+        id,
+      ]);
+
+      if (user.rowCount === 0) {
+        return NextResponse.json(
+          { error: "Kullanıcı bulunamadı." },
+          { status: 404 }
+        );
+      }
+
+      const currentUser = user.rows[0];
+
+      // Güncellenecek alanları ayarla
+      const updatedName = name ?? currentUser.name;
+      const updatedEmail = email ?? currentUser.email;
+      const updatedLessons = remainingLessons ?? currentUser.remainingLessons;
+
+      // Güncelleme sorgusunu çalıştır
+      const updateResult = await client.query(
+        "UPDATE users SET name = $1, email = $2, remainingLessons = $3 WHERE id = $4",
+        [updatedName, updatedEmail, updatedLessons, id]
       );
+
+      // Güncelleme sonucu kontrol et
+      if (updateResult.rowCount === 0) {
+        return NextResponse.json(
+          { error: "Kullanıcı bilgileri güncellenirken bir hata oluştu." },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json(
+        { message: "Kullanıcı bilgileri başarıyla güncellendi." },
+        { status: 200 }
+      );
+    } catch (error) {
+      console.error("Veritabanı işlemi sırasında hata:", error);
+      return NextResponse.json({ error: "Veritabanı hatası" }, { status: 500 });
+    } finally {
+      client.release(); // Bağlantıyı serbest bırak
     }
-
-    // Güncellenecek alanları ayarla
-    const updatedName = name ?? user.name;
-    const updatedEmail = email ?? user.email;
-    const updatedLessons = remainingLessons ?? user.remainingLessons;
-
-    // Güncelleme sorgusu
-    await db.run(
-      "UPDATE users SET name = ?, email = ?, remainingLessons = ? WHERE id = ?",
-      [updatedName, updatedEmail, updatedLessons, id]
-    );
-
-    return NextResponse.json(
-      { message: "Kullanıcı bilgileri başarıyla güncellendi." },
-      { status: 200 }
-    );
   } catch (error) {
-    console.error("Kullanıcı güncellenirken hata oluştu:", error);
+    console.error("Genel hata oluştu:", error);
     return NextResponse.json({ error: "Bir hata oluştu." }, { status: 500 });
   }
 }

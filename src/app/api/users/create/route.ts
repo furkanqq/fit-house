@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/db/index.mjs";
+import pool from "@/db/index.mjs";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,27 +22,32 @@ export async function POST(req: NextRequest) {
     }
 
     // Veritabanına bağlan
-    const db = await connectDB();
+    const client = await pool.connect();
 
-    // Yeni kullanıcı ekle
-    const result = await db.run(
-      "INSERT INTO users (name, email, remainingLessons) VALUES (?, ?, ?)",
-      [name, email, remainingLessons]
-    );
+    try {
+      // Yeni kullanıcı ekle
+      const result = await client.query(
+        "INSERT INTO users (name, email, remaining_courses) VALUES ($1, $2, $3) RETURNING id",
+        [name, email, remainingLessons]
+      );
 
-    if (!result) {
+      const newUserId = result.rows[0].id; // PostgreSQL'de, 'RETURNING id' ile id'yi alıyoruz
+
+      return NextResponse.json(
+        { message: "Kullanıcı başarıyla oluşturuldu.", id: newUserId },
+        { status: 201 }
+      );
+    } catch (error) {
+      console.error("Kullanıcı oluşturulurken hata oluştu:", error);
       return NextResponse.json(
         { error: "Kullanıcı oluşturulamadı." },
         { status: 500 }
       );
+    } finally {
+      client.release(); // Bağlantıyı serbest bırak
     }
-
-    return NextResponse.json(
-      { message: "Kullanıcı başarıyla oluşturuldu.", id: result.lastID },
-      { status: 201 }
-    );
   } catch (error) {
-    console.error("Kullanıcı oluşturulurken hata oluştu:", error);
+    console.error("Bir hata oluştu:", error);
     return NextResponse.json({ error: "Bir hata oluştu." }, { status: 500 });
   }
 }
