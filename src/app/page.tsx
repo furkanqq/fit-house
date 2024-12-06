@@ -120,12 +120,14 @@ export default function AdminPage() {
   }, []);
 
   const updateUsers = (updatedUser: User) => {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
-    );
-    setCustomUsers((prevUsers) =>
-      prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
-    );
+    const fetchUsers = async () => {
+      const res = await fetch("/api/users");
+      const data = await res.json();
+
+      setUsers(data);
+      setCustomUsers(data);
+    };
+    fetchUsers();
   };
 
   const handleInputValue = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,12 +149,6 @@ export default function AdminPage() {
             setCustomUsers(data);
           };
           fetchUsers();
-          setUsers((prevUsers) =>
-            prevUsers.filter((user) => user.id !== userId)
-          );
-          setCustomUsers((prevUsers) =>
-            prevUsers.filter((user) => user.id !== userId)
-          );
           setDeleteSure({ open: false, userId: null });
         }
       })
@@ -196,20 +192,28 @@ export default function AdminPage() {
     })
       .then((result) => {
         if (result.ok) {
-          setUsers((prevUsers) =>
-            prevUsers.map((user) =>
-              user.id === userId && user.remainingLessons > 0
-                ? { ...user, remainingLessons: user.remainingLessons - 1 }
-                : user
-            )
-          );
-          setCustomUsers((prevUsers) =>
-            prevUsers.map((user) =>
-              user.id === userId && user.remainingLessons > 0
-                ? { ...user, remainingLessons: user.remainingLessons - 1 }
-                : user
-            )
-          );
+          const fetchUsers = async () => {
+            const res = await fetch("/api/users");
+            const data = await res.json();
+
+            setUsers(data);
+            setCustomUsers(data);
+          };
+          fetchUsers();
+          // setUsers((prevUsers) =>
+          //   prevUsers.map((user) =>
+          //     user.id === userId && user.remainingLessons > 0
+          //       ? { ...user, remainingLessons: user.remainingLessons - 1 }
+          //       : user
+          //   )
+          // );
+          // setCustomUsers((prevUsers) =>
+          //   prevUsers.map((user) =>
+          //     user.id === userId && user.remainingLessons > 0
+          //       ? { ...user, remainingLessons: user.remainingLessons - 1 }
+          //       : user
+          //   )
+          // );
           setSure({ open: false, userId: null });
         }
       })
@@ -360,8 +364,16 @@ export default function AdminPage() {
       })
         .then((result) => {
           if (result.ok) {
-            setUsers((prev) => [...prev, newUser]);
-            setCustomUsers((prev) => [...prev, newUser]);
+            const fetchUsers = async () => {
+              const res = await fetch("/api/users");
+              const data = await res.json();
+
+              setUsers(data);
+              setCustomUsers(data);
+            };
+            fetchUsers();
+            // setUsers((prev) => [...prev, newUser]);
+            // setCustomUsers((prev) => [...prev, newUser]);
             setNewUserModal({
               type: "new",
               open: false,
@@ -449,7 +461,7 @@ export default function AdminPage() {
         console.log(err);
       });
   }
-  
+
   return (
     <div className="flex min-h-[100vh] w-full !items-center flex-col gap-12 md:my-1 my-8 px-2">
       <div className="relative md:w-[320px] md:h-[180px] w-[220px] h-[120px]">
