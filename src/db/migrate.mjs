@@ -9,7 +9,7 @@ const createTable = async () => {
         id SERIAL PRIMARY KEY,
         name VARCHAR(100),
         email VARCHAR(100) UNIQUE NOT NULL,
-        remainingLessons INT,
+        remaininglessons INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

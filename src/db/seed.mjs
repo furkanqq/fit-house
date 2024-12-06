@@ -8,24 +8,24 @@ async function seedDB() {
     {
       name: "Ali Veli",
       email: "furkan.llhan@hotmail.com",
-      remainingLessons: 5,
+      remaininglessons: 5,
     },
     {
       name: "Ayşe Yılmaz",
       email: "furkan.llhan@hotmail.com",
-      remainingLessons: 3,
+      remaininglessons: 3,
     },
     {
       name: "Mehmet Kaya",
       email: "furkan.llhan@hotmail.com",
-      remainingLessons: 7,
+      remaininglessons: 7,
     },
   ];
 
   for (const user of users) {
     await db.run(
-      `INSERT INTO users (name, email, remainingLessons) VALUES (?, ?, ?)`,
-      [user.name, user.email, user.remainingLessons]
+      `INSERT INTO users (name, email, remaininglessons) VALUES (?, ?, ?)`,
+      [user.name, user.email, user.remaininglessons]
     );
   }
 

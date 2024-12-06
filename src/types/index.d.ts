@@ -2,7 +2,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  remainingLessons: number;
+  remaininglessons: number;
 }
 
 export interface MailConfigContentTypes {

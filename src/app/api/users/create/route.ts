@@ -6,16 +6,16 @@ export async function POST(req: NextRequest) {
     const {
       name,
       email,
-      remainingLessons,
-    }: { name: string; email: string; remainingLessons: number } =
+      remaininglessons,
+    }: { name: string; email: string; remaininglessons: number } =
       await req.json();
 
     // Girdi doğrulaması
-    if (!name || !email || remainingLessons == null) {
+    if (!name || !email || remaininglessons == null) {
       return NextResponse.json(
         {
           error:
-            "Lütfen tüm gerekli bilgileri gönderin (name, email, remainingLessons).",
+            "Lütfen tüm gerekli bilgileri gönderin (name, email, remaininglessons).",
         },
         { status: 400 }
       );
@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
     try {
       // Yeni kullanıcı ekle
       const result = await client.query(
-        "INSERT INTO users (name, email, remainingLessons) VALUES ($1, $2, $3) RETURNING id",
-        [name, email, remainingLessons]
+        "INSERT INTO users (name, email, remaininglessons) VALUES ($1, $2, $3) RETURNING id",
+        [name, email, remaininglessons]
       );
 
       const newUserId = result.rows[0].id; // PostgreSQL'de, 'RETURNING id' ile id'yi alıyoruz

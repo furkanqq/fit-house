@@ -8,7 +8,7 @@
 //       id INTEGER PRIMARY KEY AUTOINCREMENT,
 //       name TEXT NOT NULL,
 //       email TEXT NOT NULL,
-//       remainingLessons INTEGER NOT NULL
+//       remaininglessons INTEGER NOT NULL
 //     )
 //   `);
 

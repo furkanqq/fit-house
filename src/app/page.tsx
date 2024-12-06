@@ -41,7 +41,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  remainingLessons: number;
+  remaininglessons: number;
 }
 
 interface SureType {
@@ -55,7 +55,7 @@ interface NewUserModal {
   open: boolean;
   name: string;
   email: string;
-  remainingLessons: number | "";
+  remaininglessons: number | "";
 }
 
 interface CustomState {
@@ -105,7 +105,7 @@ export default function AdminPage() {
     open: false,
     name: "",
     email: "",
-    remainingLessons: "",
+    remaininglessons: "",
   });
 
   useEffect(() => {
@@ -118,17 +118,6 @@ export default function AdminPage() {
     };
     fetchUsers();
   }, []);
-
-  const updateUsers = () => {
-    const fetchUsers = async () => {
-      const res = await fetch("/api/users");
-      const data = await res.json();
-
-      setUsers(data);
-      setCustomUsers(data);
-    };
-    fetchUsers();
-  };
 
   const handleInputValue = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -165,7 +154,7 @@ export default function AdminPage() {
       return;
     }
 
-    if (manuelCondition && manuelCondition.remainingLessons <= 0) {
+    if (manuelCondition && manuelCondition.remaininglessons <= 0) {
       alert("Kullanıcının kalan ders hakkı bulunmamaktadır.");
       return;
     }
@@ -202,15 +191,15 @@ export default function AdminPage() {
           fetchUsers();
           // setUsers((prevUsers) =>
           //   prevUsers.map((user) =>
-          //     user.id === userId && user.remainingLessons > 0
-          //       ? { ...user, remainingLessons: user.remainingLessons - 1 }
+          //     user.id === userId && user.remaininglessons > 0
+          //       ? { ...user, remaininglessons: user.remaininglessons - 1 }
           //       : user
           //   )
           // );
           // setCustomUsers((prevUsers) =>
           //   prevUsers.map((user) =>
-          //     user.id === userId && user.remainingLessons > 0
-          //       ? { ...user, remainingLessons: user.remainingLessons - 1 }
+          //     user.id === userId && user.remaininglessons > 0
+          //       ? { ...user, remaininglessons: user.remaininglessons - 1 }
           //       : user
           //   )
           // );
@@ -342,9 +331,9 @@ export default function AdminPage() {
   };
 
   const handleNewUserSubmit = async () => {
-    const { name, email, remainingLessons } = newUserModal;
+    const { name, email, remaininglessons } = newUserModal;
 
-    if (!name || !email || !remainingLessons) {
+    if (!name || !email || !remaininglessons) {
       alert("Tüm alanları doldurunuz.");
       return;
     }
@@ -354,7 +343,7 @@ export default function AdminPage() {
         id: users.length + 1,
         name,
         email,
-        remainingLessons: Number(remainingLessons),
+        remaininglessons: Number(remaininglessons),
       };
 
       await fetch("/api/users/create", {
@@ -379,7 +368,7 @@ export default function AdminPage() {
               open: false,
               name: "",
               email: "",
-              remainingLessons: "",
+              remaininglessons: "",
             });
           }
         })
@@ -395,7 +384,7 @@ export default function AdminPage() {
         id: newUserModal.id,
         name,
         email,
-        remainingLessons: Number(remainingLessons),
+        remaininglessons: Number(remaininglessons),
       };
 
       await fetch("/api/users/update/user", {
@@ -405,15 +394,21 @@ export default function AdminPage() {
       })
         .then((result) => {
           if (result.ok) {
-            // updateUsers(updatedUser);
-            updateUsers();
+            const fetchUsers = async () => {
+              const res = await fetch("/api/users");
+              const data = await res.json();
+
+              setUsers(data);
+              setCustomUsers(data);
+            };
+            fetchUsers();
             setNewUserModal({
               type: "update",
               id: null,
               open: false,
               name: "",
               email: "",
-              remainingLessons: "",
+              remaininglessons: "",
             });
           }
         })
@@ -429,16 +424,14 @@ export default function AdminPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-    if (!customUsers || customUsers.length === 0) return;
     const paginated = customUsers.slice(
       (currentPage - 1) * usersPerPage,
       currentPage * usersPerPage
     );
     setPaginatedUsers(paginated);
-  }, [customUsers]);
+  }, [customUsers, users]);
 
   useEffect(() => {
-    if (!customUsers || customUsers.length === 0) return;
     const paginated = customUsers.slice(
       (currentPage - 1) * usersPerPage,
       currentPage * usersPerPage
@@ -508,7 +501,7 @@ export default function AdminPage() {
             </Button>
           </div>
         </div>
-        {paginatedUsers.length > 0 ? (
+        {paginatedUsers && paginatedUsers.length > 0 ? (
           <Table className="relative">
             <TableHeader>
               <TableRow>
@@ -523,7 +516,7 @@ export default function AdminPage() {
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.remainingLessons}</TableCell>
+                  <TableCell>{user.remaininglessons}</TableCell>
                   <TableCell className="text-right flex gap-2 justify-end">
                     <Button
                       variant={"outline"}
@@ -534,7 +527,7 @@ export default function AdminPage() {
                           open: true,
                           name: user.name,
                           email: user.email,
-                          remainingLessons: user.remainingLessons,
+                          remaininglessons: user.remaininglessons,
                         })
                       }
                     >
@@ -544,7 +537,7 @@ export default function AdminPage() {
                     <Button
                       variant={"outline"}
                       onClick={() =>
-                        user.remainingLessons === 3
+                        user.remaininglessons === 3
                           ? setSure({ open: true, userId: user.id })
                           : handleLessonDecrement(user.id)
                       }
@@ -819,11 +812,11 @@ export default function AdminPage() {
                                 className="mt-1"
                                 type="number"
                                 placeholder="Ders Sayısı"
-                                value={String(newUserModal.remainingLessons)}
+                                value={String(newUserModal.remaininglessons)}
                                 onChange={(e) =>
                                   setNewUserModal({
                                     ...newUserModal,
-                                    remainingLessons: Number(e.target.value),
+                                    remaininglessons: Number(e.target.value),
                                   })
                                 }
                               />
@@ -845,7 +838,7 @@ export default function AdminPage() {
                             open: false,
                             name: "",
                             email: "",
-                            remainingLessons: "",
+                            remaininglessons: "",
                           })
                         }
                       >

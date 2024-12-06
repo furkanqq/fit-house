@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     try {
       // Kullanıcıyı güncelle
       const updateResult = await client.query(
-        "UPDATE users SET remainingLessons = remainingLessons - 1 WHERE id = $1",
+        "UPDATE users SET remaininglessons = remaininglessons - 1 WHERE id = $1",
         [userId]
       );
 
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       };
 
       // Kalan ders sayısı 2'ye eşitse, e-posta gönder
-      if (user.remainingLessons === 2) {
+      if (user.remaininglessons === 2) {
         await sendMail(
           user.email,
           config?.htmlFile,

@@ -7,12 +7,12 @@ export async function PUT(req: NextRequest) {
       id,
       name,
       email,
-      remainingLessons,
+      remaininglessons,
     }: {
       id: number;
       name?: string;
       email?: string;
-      remainingLessons?: number;
+      remaininglessons?: number;
     } = await req.json();
 
     // ID'nin sağlandığını kontrol et
@@ -44,11 +44,11 @@ export async function PUT(req: NextRequest) {
       // Güncellenecek alanları ayarla
       const updatedName = name ?? currentUser.name;
       const updatedEmail = email ?? currentUser.email;
-      const updatedLessons = remainingLessons ?? currentUser.remainingLessons;
+      const updatedLessons = remaininglessons ?? currentUser.remaininglessons;
 
       // Güncelleme sorgusunu çalıştır
       const updateResult = await client.query(
-        "UPDATE users SET name = $1, email = $2, remainingLessons = $3 WHERE id = $4",
+        "UPDATE users SET name = $1, email = $2, remaininglessons = $3 WHERE id = $4",
         [updatedName, updatedEmail, updatedLessons, id]
       );
 
