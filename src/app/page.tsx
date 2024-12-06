@@ -119,7 +119,7 @@ export default function AdminPage() {
     fetchUsers();
   }, []);
 
-  const updateUsers = (updatedUser: User) => {
+  const updateUsers = () => {
     const fetchUsers = async () => {
       const res = await fetch("/api/users");
       const data = await res.json();
@@ -405,7 +405,8 @@ export default function AdminPage() {
       })
         .then((result) => {
           if (result.ok) {
-            updateUsers(updatedUser);
+            // updateUsers(updatedUser);
+            updateUsers();
             setNewUserModal({
               type: "update",
               id: null,
