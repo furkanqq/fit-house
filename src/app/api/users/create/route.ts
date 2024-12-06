@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     try {
       // Yeni kullanıcı ekle
       const result = await client.query(
-        "INSERT INTO users (name, email, remaining_courses) VALUES ($1, $2, $3) RETURNING id",
+        "INSERT INTO users (name, email, remainingLessons) VALUES ($1, $2, $3) RETURNING id",
         [name, email, remainingLessons]
       );
 
