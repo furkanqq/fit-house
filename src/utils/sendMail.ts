@@ -70,7 +70,7 @@ export async function sendMail(
     });
 
     const mailOptions: MailOptions = {
-      from: username,
+      from: `"Fit House Training Studio" <${username}>`,
       to: to,
       subject: htmlFile.title,
       html: htmlToSend,
