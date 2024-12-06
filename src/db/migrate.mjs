@@ -5,12 +5,13 @@ const createTable = async () => {
   try {
     // Veritabanında tabloyu oluştur
     await client.query(`
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        remainingLessons INTEGER NOT NULL
-      )
+    CREATE TABLE users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100),
+        email VARCHAR(100) UNIQUE NOT NULL,
+        remainingLessons INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
     console.log("Users tablosu başarıyla oluşturuldu!");
   } catch (err) {
