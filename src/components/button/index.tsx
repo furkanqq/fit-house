@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import cn from "classnames";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center active:scale-[0.98] gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center bg-transparent text-white justify-center active:scale-[0.98] gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -12,10 +12,10 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outlineGreen:
-          "border border-input bg-background hover:bg-accent hover:bg-green-500 hover:text-background",
-        outline: "border border-input bg-background hover:bg-accent ",
+          "border border-input text-white bg-black hover:bg-accent hover:bg-green-400 hover:text-black",
+        outline: "border border-input bg-black hover:bg-accent ",
         green:
-          "border border-input bg-green-500 text-background hover:bg-green-500",
+          "border border-input !text-black !bg-green-400 text-black hover:bg-green-400",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
