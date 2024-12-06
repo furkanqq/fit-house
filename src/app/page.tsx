@@ -406,22 +406,24 @@ export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [paginatedUsers, setPaginatedUsers] = useState<User[]>([]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-    const paginated = customUsers.slice(
-      (currentPage - 1) * usersPerPage,
-      currentPage * usersPerPage
-    );
-    setPaginatedUsers(paginated);
-  }, [customUsers]);
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  //   if (!customUsers || customUsers.length === 0) return;
+  //   const paginated = customUsers.slice(
+  //     (currentPage - 1) * usersPerPage,
+  //     currentPage * usersPerPage
+  //   );
+  //   setPaginatedUsers(paginated);
+  // }, [customUsers]);
 
-  useEffect(() => {
-    const paginated = customUsers.slice(
-      (currentPage - 1) * usersPerPage,
-      currentPage * usersPerPage
-    );
-    setPaginatedUsers(paginated);
-  }, [currentPage]);
+  // useEffect(() => {
+  //   if (!customUsers || customUsers.length === 0) return;
+  //   const paginated = customUsers.slice(
+  //     (currentPage - 1) * usersPerPage,
+  //     currentPage * usersPerPage
+  //   );
+  //   setPaginatedUsers(paginated);
+  // }, [currentPage]);
 
   function handleLogout() {
     fetch("/api/auth/logout", {

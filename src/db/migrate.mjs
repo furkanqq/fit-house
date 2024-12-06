@@ -6,7 +6,7 @@ const createTable = async () => {
     // Veritabanında tabloyu oluştur
     await client.query(`
     CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT NOT NULL,
         remainingLessons INTEGER NOT NULL

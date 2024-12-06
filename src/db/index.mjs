@@ -23,7 +23,10 @@
 
 // export default connectDB;
 
-import { Pool } from "pg";
+import pkg from "pg";
+import dotenv from "dotenv";
+const { Pool } = pkg;
+dotenv.config();
 
 console.log(process.env.DATABASE_URL, "process.env.DATABASE_URL");
 
