@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
       };
 
       // Asenkron mail gönderme işlemleri
-      const sendMailPromises = users.map((user: User) =>
-        sendMail(
+      const sendMailPromises = users.map(async (user: User) =>
+       await sendMail(
           user?.email,
           config?.htmlFile,
           config?.mailRequest,

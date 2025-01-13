@@ -114,7 +114,9 @@ export default function AdminPage() {
       const data = await res.json();
 
       setUsers(data);
-      setCustomUsers(data);
+      setCustomUsers(
+        data.sort((a: User, b: User) => a.name.localeCompare(b.name))
+      );
     };
     fetchUsers();
   }, []);
@@ -135,7 +137,9 @@ export default function AdminPage() {
             const res = await fetch("/api/users");
             const data = await res.json();
             setUsers(data);
-            setCustomUsers(data);
+            setCustomUsers(
+              data.sort((a: User, b: User) => a.name.localeCompare(b.name))
+            );
           };
           fetchUsers();
           setDeleteSure({ open: false, userId: null });
@@ -186,7 +190,9 @@ export default function AdminPage() {
             const data = await res.json();
 
             setUsers(data);
-            setCustomUsers(data);
+            setCustomUsers(
+              data.sort((a: User, b: User) => a.name.localeCompare(b.name))
+            );
           };
           fetchUsers();
           // setUsers((prevUsers) =>
@@ -213,14 +219,18 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (inputValue === "") {
-      setCustomUsers(users);
+      setCustomUsers(
+        users.sort((a: User, b: User) => a.name.localeCompare(b.name))
+      );
     } else {
       const filteredUsers = users.filter(
         (user) =>
           user.name.toLowerCase().includes(inputValue.toLowerCase()) ||
           user.email.toLowerCase().includes(inputValue.toLowerCase())
       );
-      setCustomUsers(filteredUsers);
+      setCustomUsers(
+        filteredUsers.sort((a: User, b: User) => a.name.localeCompare(b.name))
+      );
     }
   }, [inputValue, users]);
 
@@ -358,7 +368,9 @@ export default function AdminPage() {
               const data = await res.json();
 
               setUsers(data);
-              setCustomUsers(data);
+              setCustomUsers(
+                data.sort((a: User, b: User) => a.name.localeCompare(b.name))
+              );
             };
             fetchUsers();
             // setUsers((prev) => [...prev, newUser]);
@@ -399,7 +411,9 @@ export default function AdminPage() {
               const data = await res.json();
 
               setUsers(data);
-              setCustomUsers(data);
+              setCustomUsers(
+                data.sort((a: User, b: User) => a.name.localeCompare(b.name))
+              );
             };
             fetchUsers();
             setNewUserModal({
@@ -418,7 +432,7 @@ export default function AdminPage() {
     }
   };
 
-  const usersPerPage = 5;
+  const usersPerPage = 8;
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [paginatedUsers, setPaginatedUsers] = useState<User[]>([]);
 
@@ -457,7 +471,8 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="flex min-h-[100vh] w-full !items-center flex-col gap-12 md:my-1 my-8 px-2">
+    <div className="relative flex min-h-[100vh] w-full !items-center flex-col gap-12 md:my-1 my-8 px-2">
+      <div className="absolute inset-0 bg-[url('/pattern.png')] bg-contain"></div>
       <div className="relative md:w-[320px] md:h-[180px] w-[220px] h-[120px]">
         <Image
           src="https://www.fithousetrainingstudio.com/images/logo/6214858539465-672-fithouse-footer-logo.png"
