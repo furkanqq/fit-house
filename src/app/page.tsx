@@ -480,7 +480,7 @@ export default function AdminPage() {
           fill
         />
       </div>
-      <div className="max-w-[800px] w-full flex flex-col gap-6">
+      <div className="relative z-20 max-w-[800px] w-full flex flex-col gap-6">
         <div className="flex gap-4 flex-col-reverse md:flex-row justify-between">
           <div className="w-full md:w-1/2">
             <Input
