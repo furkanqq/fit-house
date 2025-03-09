@@ -540,7 +540,7 @@ export default function AdminPage() {
   // QR kodu okunduğunda ses çalma
   const handleScan = (data: string) => {
     if (!QRRead) {
-      setQRRead(true); // QR kodu okunduğunu işaretliyoruz
+      setQRRead(false); // QR kodu okunduğunu işaretliyoruz
       setPause(true);
       setScannedData(data);
 
