@@ -20,12 +20,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/table";
+import { cn } from "@/utils/cn";
+import { Scanner } from "@yudiel/react-qr-scanner";
+import html2canvas from "html2canvas";
 import {
   Check,
   Edit,
   LogOut,
   Save,
   Send,
+  Share,
   SidebarClose,
   Trash,
   Trash2,
@@ -35,13 +39,15 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import QRCode from "react-qr-code";
 
 export interface User {
   id: number;
   name: string;
   email: string;
   remaininglessons: number;
+  qrCode?: string;
 }
 
 interface SureType {
@@ -56,6 +62,7 @@ interface NewUserModal {
   name: string;
   email: string;
   remaininglessons: number | "";
+  qrCode?: string;
 }
 
 interface CustomState {
@@ -81,6 +88,7 @@ export default function AdminPage() {
   });
   const [customUsers, setCustomUsers] = useState<User[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
+  const [shareButton, setShareButton] = useState<boolean>(false);
   const [custom, setCustom] = useState<CustomState>({
     open: false,
     name: "",
@@ -106,6 +114,16 @@ export default function AdminPage() {
     name: "",
     email: "",
     remaininglessons: "",
+    qrCode: "",
+  });
+  const [qrCode, setQrCode] = useState<{
+    open: boolean;
+    id: number | null;
+    userName: string;
+  }>({
+    open: false,
+    id: null,
+    userName: "",
   });
 
   useEffect(() => {
@@ -339,6 +357,42 @@ export default function AdminPage() {
         alert(err);
       });
   };
+  const divRef = useRef<HTMLDivElement>(null);
+
+  const handleShareQrCode = async () => {
+    setShareButton(true);
+
+    setTimeout(async () => {
+      if (!divRef.current) return;
+
+      // 📸 1. Div'i görsele çevir
+      const canvas = await html2canvas(divRef.current, { useCORS: true });
+      const image = canvas.toDataURL("image/png");
+
+      // 📥 2. Görseli indirilebilir bir dosya yap
+      const blob = await fetch(image).then((res) => res.blob());
+      const file = new File([blob], "shared-image.png", { type: "image/png" });
+
+      // Kullanıcıya görseli indirmesi için bir link verebilirsin
+      const downloadLink = document.createElement("a");
+      downloadLink.href = URL.createObjectURL(file);
+      downloadLink.download = `${qrCode.userName}_qrCode.png`;
+      downloadLink.click();
+
+      // 📤 3. WhatsApp paylaşımı için sadece metin URL'si oluştur
+      const whatsappText = `Görseli paylaşmak için tıklayın: shared-image.png`; // dosya ismini buraya ekledik
+      const whatsappURL = `https://wa.me/?text=${encodeURIComponent(
+        whatsappText
+      )}`;
+
+      // 🌍 4. Yeni sekmede WhatsApp aç
+      window.open(whatsappURL, "_blank");
+    }, 1500);
+
+    setTimeout(() => {
+      setShareButton(false);
+    }, 2000);
+  };
 
   const handleNewUserSubmit = async () => {
     const { name, email, remaininglessons } = newUserModal;
@@ -469,10 +523,79 @@ export default function AdminPage() {
         console.log(err);
       });
   }
+  const [scannedData, setScannedData] = useState<string | null>(null);
+  const [pause, setPause] = useState(false);
+  const [QRRead, setQRRead] = useState(false);
+
+  // Ses dosyasını sadece tarayıcıda tanımlıyoruz
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+
+  // Tarayıcıda çalışıp çalışmadığını kontrol ediyoruz
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setAudio(new Audio("/welcome1.mp3")); // Tarayıcıda ses dosyasını yüklüyoruz
+    }
+  }, []);
+
+  // QR kodu okunduğunda ses çalma
+  const handleScan = (data: string) => {
+    if (!QRRead) {
+      setQRRead(true); // QR kodu okunduğunu işaretliyoruz
+      setPause(true);
+      setScannedData(data);
+
+      if (audio) {
+        audio.play(); // QR kodu okunduğunda ses çal
+      }
+
+      setPause(false);
+    }
+  };
+
+  useEffect(() => {
+    if (scannedData !== null) {
+      handleLessonDecrement(+scannedData);
+      setScannedData(null);
+    }
+  }, [scannedData]);
 
   return (
     <div className="relative flex min-h-[100vh] w-full !items-center flex-col gap-12 md:my-1 my-8 px-2">
       <div className="absolute inset-0 bg-[url('/pattern.png')] bg-contain"></div>
+      {/* <div className="absolute z-40">
+        <Button onClick={() => setQRRead(true)} variant={"outline"}>
+          Qr Okuyucuyu Aç
+        </Button>
+      </div> */}
+      <div
+        className={cn(
+          "absolute z-50 w-full h-screen backdrop-blur-sm",
+          QRRead ? "flex" : "hidden"
+        )}
+      >
+        <div className="absolute right-0 top-0">
+          <Scanner
+            formats={["qr_code"]}
+            onScan={(detectedCodes) => {
+              if (detectedCodes.length > 0) {
+                handleScan(detectedCodes[0].rawValue);
+              }
+            }}
+            onError={(error) => console.log(`onError: ${error}`)}
+            styles={{ container: { height: "400px", width: "350px" } }}
+            components={{
+              audio: false, // Varsayılan sesi devre dışı bırakıyoruz
+              onOff: true,
+              torch: true,
+              zoom: true,
+              finder: true,
+            }}
+            allowMultiple={true}
+            scanDelay={5000}
+            paused={pause}
+          />
+        </div>
+      </div>
       <div className="relative md:w-[320px] md:h-[180px] w-[220px] h-[120px]">
         <Image
           src="https://www.fithousetrainingstudio.com/images/logo/6214858539465-672-fithouse-footer-logo.png"
@@ -480,7 +603,7 @@ export default function AdminPage() {
           fill
         />
       </div>
-      <div className="relative z-20 max-w-[800px] w-full flex flex-col gap-6">
+      <div className="relative z-20 max-w-[920px] w-full flex flex-col gap-6">
         <div className="flex gap-4 flex-col-reverse md:flex-row justify-between">
           <div className="w-full md:w-1/2">
             <Input
@@ -523,6 +646,7 @@ export default function AdminPage() {
                 <TableHead>Adı Soyadı</TableHead>
                 <TableHead>Mail</TableHead>
                 <TableHead>Kalan</TableHead>
+                <TableHead>Qr</TableHead>
                 <TableHead className="text-right"></TableHead>
               </TableRow>
             </TableHeader>
@@ -532,6 +656,21 @@ export default function AdminPage() {
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.remaininglessons}</TableCell>
+                  <TableCell>
+                    {" "}
+                    <Button
+                      variant={"outline"}
+                      onClick={() =>
+                        setQrCode({
+                          open: true,
+                          id: user.id,
+                          userName: user.name,
+                        })
+                      }
+                    >
+                      Qr Göster
+                    </Button>
+                  </TableCell>
                   <TableCell className="text-right flex gap-2 justify-end">
                     <Button
                       variant={"outline"}
@@ -854,6 +993,81 @@ export default function AdminPage() {
                             name: "",
                             email: "",
                             remaininglessons: "",
+                          })
+                        }
+                      >
+                        <SidebarClose />
+                        Kapat
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {qrCode.open && (
+          <>
+            <div
+              className="relative z-10"
+              aria-labelledby="modal-title"
+              role="dialog"
+              aria-modal="true"
+            >
+              <div
+                className="fixed inset-0 bg-black/30 backdrop-blur-[4px] transition-opacity"
+                aria-hidden="true"
+              ></div>
+
+              <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+                <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0 ">
+                  <div
+                    ref={divRef}
+                    className="relative transform overflow-hidden rounded-lg bg-black text-left shadow-md shadow-slate-400 transition-all w-full mb-40 sm:my-8 sm:w-[320px] "
+                  >
+                    <div className="bg-black px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                      <div className="sm:flex sm:items-start">
+                        <div className="flex flex-col items-center gap-2 justify-center mt-3 text-center sm:mx-4 w-full sm:mt-0 sm:text-left">
+                          <h3
+                            className="text-base font-semibold text-white"
+                            id="modal-title"
+                          >
+                            {qrCode.userName} Qr Code
+                          </h3>
+                          <div className="mt-4 w-fit flex flex-col gap-3 bg-white p-1">
+                            <QRCode value={qrCode.id + ""} size={160} />
+                          </div>
+                          <div className="relative md:w-[220px] md:h-[130px] w-[220px] h-[120px]">
+                            {/* <Image src="/fithouse.png" alt="fithouse" fill unoptimized /> */}
+                            <img
+                              src="/fithouse.png"
+                              alt="fithouse"
+                              width="220"
+                              height="130"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      className={cn(
+                        "px-4 py-3 flex gap-4 sm:flex-row-reverse sm:px-6",
+                        shareButton ? "hidden" : "flex"
+                      )}
+                    >
+                      <Button variant={"green"} onClick={handleShareQrCode}>
+                        Paylaş
+                        <Share />
+                      </Button>
+                      <Button
+                        variant={"outline"}
+                        onClick={() =>
+                          setQrCode({
+                            open: false,
+                            id: null,
+                            userName: "",
                           })
                         }
                       >
