@@ -379,14 +379,14 @@ export default function AdminPage() {
       downloadLink.download = `${qrCode.userName}_qrCode.png`;
       downloadLink.click();
 
-      // 📤 3. WhatsApp paylaşımı için sadece metin URL'si oluştur
-      const whatsappText = `Görseli paylaşmak için tıklayın: shared-image.png`; // dosya ismini buraya ekledik
-      const whatsappURL = `https://wa.me/?text=${encodeURIComponent(
-        whatsappText
-      )}`;
+      // // 📤 3. WhatsApp paylaşımı için sadece metin URL'si oluştur
+      // const whatsappText = `Görseli paylaşmak için tıklayın: shared-image.png`; // dosya ismini buraya ekledik
+      // const whatsappURL = `https://wa.me/?text=${encodeURIComponent(
+      //   whatsappText
+      // )}`;
 
-      // 🌍 4. Yeni sekmede WhatsApp aç
-      window.open(whatsappURL, "_blank");
+      // // 🌍 4. Yeni sekmede WhatsApp aç
+      // window.open(whatsappURL, "_blank");
     }, 1500);
 
     setTimeout(() => {
@@ -533,7 +533,7 @@ export default function AdminPage() {
   // Tarayıcıda çalışıp çalışmadığını kontrol ediyoruz
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setAudio(new Audio("/welcome1.mp3")); // Tarayıcıda ses dosyasını yüklüyoruz
+      setAudio(new Audio("/welcome2.mp3")); // Tarayıcıda ses dosyasını yüklüyoruz
     }
   }, []);
 
@@ -1058,7 +1058,7 @@ export default function AdminPage() {
                       )}
                     >
                       <Button variant={"green"} onClick={handleShareQrCode}>
-                        Paylaş
+                        İndir
                         <Share />
                       </Button>
                       <Button
