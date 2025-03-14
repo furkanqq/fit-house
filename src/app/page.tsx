@@ -21,7 +21,6 @@ import {
   TableRow,
 } from "@/components/table";
 import { cn } from "@/utils/cn";
-import { Scanner } from "@yudiel/react-qr-scanner";
 import html2canvas from "html2canvas";
 import {
   Check,
@@ -82,6 +81,9 @@ export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [sure, setSure] = useState<SureType>({ open: false, userId: null });
+  const [scannedData, setScannedData] = useState<string>("");
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [errorAudio, setErrorAudio] = useState<HTMLAudioElement | null>(null);
   const [deleteSure, setDeleteSure] = useState<SureType>({
     open: false,
     userId: null,
@@ -125,6 +127,17 @@ export default function AdminPage() {
     id: null,
     userName: "",
   });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setAudio(new Audio("/welcome2.mp3")); // Tarayıcıda ses dosyasını yüklüyoruz
+    }
+  }, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setErrorAudio(new Audio("/error.mp3")); // Tarayıcıda ses dosyasını yüklüyoruz
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -232,6 +245,69 @@ export default function AdminPage() {
       })
       .catch((err) => {
         alert(err);
+      });
+  };
+
+  const handleLessonDecrementByQR = async (userId: number) => {
+    const manuelCondition = users.find((user) => user.id === userId);
+
+    if (!manuelCondition) {
+      // alert("Kullanıcı bulunamadı.");
+      if (errorAudio) {
+        errorAudio.play(); // Ses çal
+      }
+      return;
+    }
+
+    if (manuelCondition && manuelCondition.remaininglessons <= 0) {
+      alert("Kullanıcının kalan ders hakkı bulunmamaktadır.");
+      return;
+    }
+    const config = {
+      htmlFile: {
+        htmlName: "/template/feedback",
+        title: "Fit House Training Studio",
+      },
+      mailRequest: {
+        name: manuelCondition.name,
+        message1: `Harika bir iş çıkardınız, tebrikler! 🎉 Şu an ders paketinizde sadece 2 ders kaldı. Hedeflerinize çok yaklaştınız ve bu başarıyı devam ettirmeniz için buradayız.`,
+        message2:
+          "Yeni bir ders paketiyle formunuzu koruyup geliştirmeye devam etmeye ne dersiniz?",
+        message3: " Hemen iletişime geçin ve kaldığınız yerden devam edelim.",
+        message4: "💪 Sizinle çalışmaktan her zaman mutluluk duyuyoruz,",
+        message5: " Fit House Training Studio Ekibi",
+      },
+    };
+
+    await fetch("/api/users/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, config }),
+    })
+      .then((result) => {
+        if (result.ok) {
+          if (audio) {
+            audio.play(); // Ses çal
+          }
+          const fetchUsers = async () => {
+            const res = await fetch("/api/users");
+            const data = await res.json();
+
+            setUsers(data);
+            setCustomUsers(
+              data.sort((a: User, b: User) => a.name.localeCompare(b.name))
+            );
+          };
+          fetchUsers();
+          setSure({ open: false, userId: null });
+        }
+      })
+      .catch((err) => {
+        // alert(err);
+        console.log(err, "err");
+        if (errorAudio) {
+          errorAudio.play(); // Ses çal
+        }
       });
   };
 
@@ -523,39 +599,67 @@ export default function AdminPage() {
         console.log(err);
       });
   }
-  const [scannedData, setScannedData] = useState<string | null>(null);
-  const [pause, setPause] = useState(false);
-  const [QRRead, setQRRead] = useState(false);
+  // const [scannedData, setScannedData] = useState<string | null>(null);
+  // const [pause, setPause] = useState(false);
+  // const [QRRead, setQRRead] = useState(false);
 
-  // Ses dosyasını sadece tarayıcıda tanımlıyoruz
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  // // Ses dosyasını sadece tarayıcıda tanımlıyoruz
+  // const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
-  // Tarayıcıda çalışıp çalışmadığını kontrol ediyoruz
+  // // Tarayıcıda çalışıp çalışmadığını kontrol ediyoruz
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     setAudio(new Audio("/welcome2.mp3")); // Tarayıcıda ses dosyasını yüklüyoruz
+  //   }
+  // }, []);
+
+  // // QR kodu okunduğunda ses çalma
+  // const handleScan = (data: string) => {
+  //   if (!QRRead) {
+  //     setQRRead(false); // QR kodu okunduğunu işaretliyoruz
+  //     setPause(true);
+  //     setScannedData(data);
+
+  //     if (audio) {
+  //       audio.play(); // QR kodu okunduğunda ses çal
+  //     }
+
+  //     setPause(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (scannedData !== null) {
+  //     handleLessonDecrement(+scannedData);
+  //     setScannedData(null);
+  //   }
+  // }, [scannedData]);
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setAudio(new Audio("/welcome2.mp3")); // Tarayıcıda ses dosyasını yüklüyoruz
-    }
+    let buffer = ""; // QR okuyucudan gelen veriyi tutacak değişken
+
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        if (buffer.trim() !== "") {
+          setScannedData(buffer); // QR kod verisini işle
+          buffer = ""; // Buffer'ı sıfırla
+        }
+      } else {
+        buffer += event.key; // Her tuş basıldığında buffer'a ekle
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
   }, []);
 
-  // QR kodu okunduğunda ses çalma
-  const handleScan = (data: string) => {
-    if (!QRRead) {
-      setQRRead(false); // QR kodu okunduğunu işaretliyoruz
-      setPause(true);
-      setScannedData(data);
-
-      if (audio) {
-        audio.play(); // QR kodu okunduğunda ses çal
-      }
-
-      setPause(false);
-    }
-  };
-
   useEffect(() => {
-    if (scannedData !== null) {
-      handleLessonDecrement(+scannedData);
-      setScannedData(null);
+    if (scannedData !== "") {
+      handleLessonDecrementByQR(+scannedData);
+      setScannedData("");
     }
   }, [scannedData]);
 
@@ -567,7 +671,7 @@ export default function AdminPage() {
           Qr Okuyucuyu Aç
         </Button>
       </div> */}
-      <div
+      {/* <div
         className={cn(
           "absolute z-50 w-full h-screen backdrop-blur-sm",
           QRRead ? "flex" : "hidden"
@@ -595,7 +699,7 @@ export default function AdminPage() {
             paused={pause}
           />
         </div>
-      </div>
+      </div> */}
       <div className="relative md:w-[320px] md:h-[180px] w-[220px] h-[120px]">
         <Image
           src="https://www.fithousetrainingstudio.com/images/logo/6214858539465-672-fithouse-footer-logo.png"
