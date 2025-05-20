@@ -20,13 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/table";
-import {
-  AllUsersState,
-  CustomState,
-  NewUserModal,
-  SureType,
-  User,
-} from "@/types";
+import { AllUsersState, CustomState, NewUserModal, SureType, User } from "@/types";
 import { cn } from "@/utils/cn";
 import html2canvas from "html2canvas";
 import {
@@ -670,7 +664,9 @@ export default function AdminPage() {
                 </ul>
               </div>
               <p>
-                {"Süleyman, 'Bunlarla mı uğraşacağız?' dediğini duyar gibiyim 🙂 Ama bunlar gerçekten çok basit ve hataları önlemek için gerekli ufak adımlar."}
+                {
+                  "Süleyman, 'Bunlarla mı uğraşacağız?' dediğini duyar gibiyim 🙂 Ama bunlar gerçekten çok basit ve hataları önlemek için gerekli ufak adımlar."
+                }
               </p>
               <p>
                 Bilginize sunarım. Hepinize güzel ve verimli bir çalışma günü

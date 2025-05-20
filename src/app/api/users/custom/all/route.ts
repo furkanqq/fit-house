@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/db/index.mjs";
 import { sendMail } from "@/utils/sendMail";
-import { UserMailConfigTypes } from "@/types";
-import { User } from "@/app/page";
+import { User, UserMailConfigTypes } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,13 +31,14 @@ export async function POST(req: NextRequest) {
       };
 
       // Asenkron mail gönderme işlemleri
-      const sendMailPromises = users.map(async (user: User) =>
-       await sendMail(
-          user?.email,
-          config?.htmlFile,
-          config?.mailRequest,
-          userMailConfig
-        )
+      const sendMailPromises = users.map(
+        async (user: User) =>
+          await sendMail(
+            user?.email,
+            config?.htmlFile,
+            config?.mailRequest,
+            userMailConfig
+          )
       );
 
       // Tüm mail gönderimlerinin tamamlanmasını bekleyelim
