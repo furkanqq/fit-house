@@ -158,7 +158,7 @@ export default function AdminPage() {
     const manuelCondition = users.find((user) => user.id === userId);
 
     if (!manuelCondition) {
-      alert("Kullanıcı bulunamadı.");
+      alert("Kullanıcı bulunamadı...");
       return;
     }
 
