@@ -20,10 +20,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/table";
+import {
+  AllUsersState,
+  CustomState,
+  NewUserModal,
+  SureType,
+  User,
+} from "@/types";
 import { cn } from "@/utils/cn";
 import html2canvas from "html2canvas";
 import {
+  BellDotIcon,
   Check,
+  CheckCheckIcon,
   Edit,
   LogOut,
   Save,
@@ -40,42 +49,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import QRCode from "react-qr-code";
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  remaininglessons: number;
-  qrCode?: string;
-}
-
-interface SureType {
-  open: boolean;
-  userId: number | null;
-}
-
-interface NewUserModal {
-  id?: number | null;
-  type: "new" | "update";
-  open: boolean;
-  name: string;
-  email: string;
-  remaininglessons: number | "";
-  qrCode?: string;
-}
-
-interface CustomState {
-  open: boolean;
-  name: string;
-  email: string;
-  [key: `message${number}`]: string;
-}
-
-interface AllUsersState {
-  open: boolean;
-
-  [key: `message${number}`]: string;
-}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -226,20 +199,6 @@ export default function AdminPage() {
             );
           };
           fetchUsers();
-          // setUsers((prevUsers) =>
-          //   prevUsers.map((user) =>
-          //     user.id === userId && user.remaininglessons > 0
-          //       ? { ...user, remaininglessons: user.remaininglessons - 1 }
-          //       : user
-          //   )
-          // );
-          // setCustomUsers((prevUsers) =>
-          //   prevUsers.map((user) =>
-          //     user.id === userId && user.remaininglessons > 0
-          //       ? { ...user, remaininglessons: user.remaininglessons - 1 }
-          //       : user
-          //   )
-          // );
           setSure({ open: false, userId: null });
         }
       })
@@ -454,21 +413,29 @@ export default function AdminPage() {
       downloadLink.href = URL.createObjectURL(file);
       downloadLink.download = `${qrCode.userName}_qrCode.png`;
       downloadLink.click();
-
-      // // 📤 3. WhatsApp paylaşımı için sadece metin URL'si oluştur
-      // const whatsappText = `Görseli paylaşmak için tıklayın: shared-image.png`; // dosya ismini buraya ekledik
-      // const whatsappURL = `https://wa.me/?text=${encodeURIComponent(
-      //   whatsappText
-      // )}`;
-
-      // // 🌍 4. Yeni sekmede WhatsApp aç
-      // window.open(whatsappURL, "_blank");
     }, 1500);
 
     setTimeout(() => {
       setShareButton(false);
     }, 2000);
   };
+
+  let intervalId: NodeJS.Timeout | null = null;
+
+  const startKeepAlive = () => {
+    if (intervalId) return;
+
+    intervalId = setInterval(() => {
+      let total = 0;
+      total += Math.sqrt(1234);
+      console.log("sayfa aktif:", total);
+      // CPU dostu işlem
+    }, 20000);
+  };
+
+  useEffect(() => {
+    startKeepAlive();
+  }, []);
 
   const handleNewUserSubmit = async () => {
     const { name, email, remaininglessons } = newUserModal;
@@ -599,53 +566,27 @@ export default function AdminPage() {
         console.log(err);
       });
   }
-  // const [scannedData, setScannedData] = useState<string | null>(null);
-  // const [pause, setPause] = useState(false);
-  // const [QRRead, setQRRead] = useState(false);
 
-  // // Ses dosyasını sadece tarayıcıda tanımlıyoruz
-  // const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
-
-  // // Tarayıcıda çalışıp çalışmadığını kontrol ediyoruz
-  // useEffect(() => {
-  //   if (typeof window !== "undefined") {
-  //     setAudio(new Audio("/welcome2.mp3")); // Tarayıcıda ses dosyasını yüklüyoruz
-  //   }
-  // }, []);
-
-  // // QR kodu okunduğunda ses çalma
-  // const handleScan = (data: string) => {
-  //   if (!QRRead) {
-  //     setQRRead(false); // QR kodu okunduğunu işaretliyoruz
-  //     setPause(true);
-  //     setScannedData(data);
-
-  //     if (audio) {
-  //       audio.play(); // QR kodu okunduğunda ses çal
-  //     }
-
-  //     setPause(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   if (scannedData !== null) {
-  //     handleLessonDecrement(+scannedData);
-  //     setScannedData(null);
-  //   }
-  // }, [scannedData]);
+  const bufferRef = useRef("");
 
   useEffect(() => {
-    let buffer = ""; // QR okuyucudan gelen veriyi tutacak değişken
+    setScannedData(""); // İlk açılışta temizle
 
     const handleKeyPress = (event: KeyboardEvent) => {
+      console.log(bufferRef.current, "buffer");
+
+      if (document.activeElement?.tagName === "INPUT") return;
+
       if (event.key === "Enter") {
-        if (buffer.trim() !== "") {
-          setScannedData(buffer); // QR kod verisini işle
-          buffer = ""; // Buffer'ı sıfırla
+        if (bufferRef.current.trim() !== "") {
+          setScannedData(bufferRef.current);
+          bufferRef.current = ""; // temizle
         }
       } else {
-        buffer += event.key; // Her tuş basıldığında buffer'a ekle
+        // Sadece rakamları ekle
+        if (/^[0-9]$/.test(event.key)) {
+          bufferRef.current += event.key;
+        }
       }
     };
 
@@ -663,43 +604,103 @@ export default function AdminPage() {
     }
   }, [scannedData]);
 
+  const [showPopup, setShowPopup] = useState(false);
+
+  useEffect(() => {
+    const hasRead = localStorage.getItem("popupRead");
+    if (!hasRead) {
+      setShowPopup(true);
+    }
+  }, []);
+
+  const handleClose = () => {
+    localStorage.setItem("popupRead", "true");
+    setShowPopup(false);
+  };
+
+  // if (!showPopup) return null;
+
   return (
     <div className="relative flex min-h-[100vh] w-full !items-center flex-col gap-12 md:my-1 my-8 px-2">
-      <div className="absolute inset-0 bg-[url('/pattern.png')] bg-contain"></div>
-      {/* <div className="absolute z-40">
-        <Button onClick={() => setQRRead(true)} variant={"outline"}>
-          Qr Okuyucuyu Aç
-        </Button>
-      </div> */}
-      {/* <div
-        className={cn(
-          "absolute z-50 w-full h-screen backdrop-blur-sm",
-          QRRead ? "flex" : "hidden"
-        )}
-      >
-        <div className="absolute right-0 top-0">
-          <Scanner
-            formats={["qr_code"]}
-            onScan={(detectedCodes) => {
-              if (detectedCodes.length > 0) {
-                handleScan(detectedCodes[0].rawValue);
-              }
-            }}
-            onError={(error) => console.log(`onError: ${error}`)}
-            styles={{ container: { height: "400px", width: "350px" } }}
-            components={{
-              audio: false, // Varsayılan sesi devre dışı bırakıyoruz
-              onOff: true,
-              torch: true,
-              zoom: true,
-              finder: true,
-            }}
-            allowMultiple={true}
-            scanDelay={5000}
-            paused={pause}
-          />
+      {showPopup && (
+        <div className="fixed top-0 left-0 w-full h-screen bg-black z-[1000] text-white">
+          <div className="absolute flex flex-col gap-4 top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] w-[94%] md:w-1/2 h-screen md:h-fit text-center overflow-scroll pt-8 pb-5 md:pb-0 md:pt-0">
+            <div>
+              <h1 className="text-2xl">
+                Değerli Süleyman Yeşil ve Değerli Burak Angın,
+              </h1>
+              <p className="text-xs text-blue-400">
+                Bu mesajı yalnızca bir kez göreceksiniz.
+              </p>
+            </div>
+            <div className="text-left flex flex-col gap-3 text-white">
+              <p>
+                Öncelikle, sistemdeki hataları minimuma indirmek adına birkaç
+                çalışma gerçekleştirdiğimi sizlerle paylaşmak isterim.
+                Önümüzdeki birkaç gün boyunca sizlerle birlikte test sürecine
+                devam edeceğiz. Bu nedenle geri bildirimlerinizi benim için çok
+                kıymetli olacak.
+              </p>
+              <div>
+                <label>
+                  Sizden özellikle dikkat etmenizi rica ettiğim birkaç nokta
+                  var:
+                </label>
+                <ul>
+                  <li className="ml-4">
+                    - Öğrenciler yalnızca bir kez QR okutmalı. Bu, öğrenciden
+                    isteyeceğiniz tek şey olacak. Sonrası sizin
+                    sorumluluğunuzda.
+                  </li>
+                  <li className="ml-4">
+                    - Masadan ayrılacağınız zaman sayfayı yenileyip açık
+                    bırakmanız gerekiyor. Eğer sayfayı yenilemek zor gelirse, en
+                    azından:
+                    <ul>
+                      <li className="ml-8">
+                        - Web sitesine odaklanmış (sayfanın herhangi bir alanına
+                        tıklanmış) olduğundan,
+                      </li>
+                      <li className="ml-8">
+                        - Herhangi bir input alanına (arama kutusu vb.)
+                        odaklanılmadığından emin olun.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+              <p>
+                Süleyman, "Bunlarla mı uğraşacağız?" dediğini duyar gibiyim 🙂
+                Ama bunlar gerçekten çok basit ve hataları önlemek için gerekli
+                ufak adımlar.
+              </p>
+              <p>
+                Bilginize sunarım. Hepinize güzel ve verimli bir çalışma günü
+                dilerim.
+              </p>
+            </div>
+            <div className="flex flex-col md:flex-row gap-4 w-full justify-between mt-4">
+              <Button
+                onClick={() => setShowPopup(false)}
+                variant="outline"
+                className="w-full"
+              >
+                <BellDotIcon />
+                Daha Sonra Tekrar Hatırlat.
+              </Button>
+              <Button
+                onClick={handleClose}
+                variant="outline"
+                className="w-full"
+              >
+                <CheckCheckIcon className="mr-2" />
+                Okudum, Anladım.
+              </Button>
+            </div>
+          </div>
         </div>
-      </div> */}
+      )}
+      <div className="absolute inset-0 bg-[url('/pattern.png')] bg-contain"></div>
       <div className="relative md:w-[320px] md:h-[180px] w-[220px] h-[120px]">
         <Image
           src="https://www.fithousetrainingstudio.com/images/logo/6214858539465-672-fithouse-footer-logo.png"
@@ -761,7 +762,6 @@ export default function AdminPage() {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.remaininglessons}</TableCell>
                   <TableCell>
-                    {" "}
                     <Button
                       variant={"outline"}
                       onClick={() =>
@@ -815,7 +815,7 @@ export default function AdminPage() {
                   </TableCell>
                 </TableRow>
               ))}
-            </TableBody>{" "}
+            </TableBody>
             <TableCaption className="invisible md:visible">
               A list of FitHouse.
             </TableCaption>

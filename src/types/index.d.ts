@@ -42,3 +42,39 @@ export type EmailDeliveryResponse = {
   };
   messageId: string;
 };
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  remaininglessons: number;
+  qrCode?: string;
+}
+
+export interface SureType {
+  open: boolean;
+  userId: number | null;
+}
+
+export interface NewUserModal {
+  id?: number | null;
+  type: "new" | "update";
+  open: boolean;
+  name: string;
+  email: string;
+  remaininglessons: number | "";
+  qrCode?: string;
+}
+
+export interface CustomState {
+  open: boolean;
+  name: string;
+  email: string;
+  [key: `message${number}`]: string;
+}
+
+export interface AllUsersState {
+  open: boolean;
+
+  [key: `message${number}`]: string;
+}
