@@ -670,9 +670,7 @@ export default function AdminPage() {
                 </ul>
               </div>
               <p>
-                Süleyman, "Bunlarla mı uğraşacağız?" dediğini duyar gibiyim 🙂
-                Ama bunlar gerçekten çok basit ve hataları önlemek için gerekli
-                ufak adımlar.
+                {"Süleyman, 'Bunlarla mı uğraşacağız?' dediğini duyar gibiyim 🙂 Ama bunlar gerçekten çok basit ve hataları önlemek için gerekli ufak adımlar."}
               </p>
               <p>
                 Bilginize sunarım. Hepinize güzel ve verimli bir çalışma günü
