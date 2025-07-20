@@ -20,7 +20,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/table";
-import { AllUsersState, CustomState, NewUserModal, SureType, User } from "@/types";
+import {
+  AllUsersState,
+  CustomState,
+  NewUserModal,
+  SureType,
+  User,
+} from "@/types";
 import { cn } from "@/utils/cn";
 import html2canvas from "html2canvas";
 import {
@@ -601,14 +607,14 @@ export default function AdminPage() {
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
-    const hasRead = localStorage.getItem("popupRead");
+    const hasRead = localStorage.getItem("readPopup");
     if (!hasRead) {
       setShowPopup(true);
     }
   }, []);
 
   const handleClose = () => {
-    localStorage.setItem("popupRead", "true");
+    localStorage.setItem("readPopup", "true");
     setShowPopup(false);
   };
 
@@ -618,7 +624,7 @@ export default function AdminPage() {
     <div className="relative flex min-h-[100vh] w-full !items-center flex-col gap-12 md:my-1 my-8 px-2">
       {showPopup && (
         <div className="fixed top-0 left-0 w-full h-screen bg-black z-[1000] text-white">
-          <div className="absolute flex flex-col gap-4 top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] w-[94%] md:w-1/2 h-screen md:h-fit text-center overflow-scroll pt-8 pb-5 md:pb-0 md:pt-0">
+          <div className="absolute flex flex-col gap-4 top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] w-[94%] md:w-1/2 h-screen md:h-fit text-center overflow-scroll md:overflow-hidden pt-8 pb-5 md:pb-0 md:pt-0">
             <div>
               <h1 className="text-2xl">
                 Değerli Süleyman Yeşil ve Değerli Burak Angın,
@@ -738,6 +744,9 @@ export default function AdminPage() {
             </Button>
           </div>
         </div>
+        <div className="absolute right-0 top-[104px] text-xs md:top-20 md:text-sm">
+          Kayıtlı Kişi Sayısı: {users.length}
+        </div>
         {paginatedUsers && paginatedUsers.length > 0 ? (
           <Table className="relative">
             <TableHeader>
@@ -815,7 +824,7 @@ export default function AdminPage() {
             </TableCaption>
           </Table>
         ) : (
-          <div className="border border-solid border-gray-500/20 w-full h-20 flex justify-center items-center">
+          <div className="border border-solid border-gray-500/20 w-full h-20 flex justify-center items-center mt-12">
             <span>Henüz Bir Müşteri Bulunmamaktadır.</span>
           </div>
         )}
